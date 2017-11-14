@@ -1,7 +1,5 @@
 package com.me.backup.controller;
 
-import com.me.backup.util.JsonUtil;
-
 public class BaseController {
 
 
@@ -13,5 +11,15 @@ public class BaseController {
         apiResponseResult.data = data;
 
         return apiResponseResult;
+    }
+
+    protected Object toResponse(int code, String msg) {
+
+        return toResponse(code, msg, null);
+    }
+
+    protected Object toResponse(int code) {
+
+        return toResponse(code, null, null);
     }
 }

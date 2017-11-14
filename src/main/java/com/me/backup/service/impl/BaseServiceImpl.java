@@ -4,7 +4,6 @@ import com.me.backup.dao.BaseDao;
 import com.me.backup.service.BaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.io.Serializable;
 import java.util.List;
@@ -16,26 +15,43 @@ public class BaseServiceImpl<T> implements BaseService<T> {
     private BaseDao<T> dao;
 
 
-    public void save(T entity) {
+    public boolean save(T entity) {
 
-        dao.save(entity);
+        return dao.save(entity);
     }
 
-    public void update(T entity) {
-
-        dao.update(entity);
+    public boolean saveOrUpdate(T entity) {
+        return dao.saveOrUpdate(entity);
     }
 
-    public void delete(T entity) {
+    public boolean saveOrUpdate(List<T> entityList) {
+        return dao.saveOrUpdate(entityList);
+    }
 
-        dao.delete(entity);
+    public boolean save(List<T> entityList) {
+
+        return dao.save(entityList);
+    }
+
+    public boolean update(T entity) {
+
+        return dao.update(entity);
+    }
+
+    public boolean update(List<T> entityList) {
+        return dao.update(entityList);
+    }
+
+    public boolean delete(T entity) {
+
+        return dao.delete(entity);
     }
 
     public T findById(Serializable id) {
         return dao.findById(id);
     }
 
-    public List<T> findByHql(String hql, Object... params){
+    public List<T> findByHql(String hql, Object... params) {
         return dao.findByHql(hql, params);
     }
 }

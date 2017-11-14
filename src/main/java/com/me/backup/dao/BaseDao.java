@@ -5,14 +5,22 @@ import java.util.List;
 
 public interface BaseDao<T> {
 
-    public void save(T entity);
+    boolean save(T entity);
 
-    public void update(T entity);
+    boolean save(List<T> entityList);
 
-    public void delete(T entity);
+    boolean saveOrUpdate(T entity);
 
-    public T findById(Serializable id) ;
+    boolean saveOrUpdate(List<T> entityList);
 
-    public List<T> findByHql(String hql, Object... params);
+    boolean update(T entity);
+
+    boolean update(List<T> entityList);
+
+    boolean delete(T entity);
+
+    T findById(Serializable id);
+
+    List<T> findByHql(String hql, Object... params);
 
 }

@@ -2,14 +2,13 @@ package com.me.backup.dao.impl;
 
 import com.me.backup.dao.BaseDao;
 import com.me.backup.dao.HibernateSessionFactory;
-import com.me.backup.pojo.UserEntity;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.hibernate.query.Query;
-import org.slf4j.LoggerFactory;
 
-import javax.annotation.Resource;
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
 import java.util.List;
 
 public class BaseDaoImpl<T> implements BaseDao<T> {
@@ -29,45 +28,137 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
         return HibernateSessionFactory.getSession();
     }
 
-    public void save(T entity) {
+    public boolean save(T entity) {
 
-        Session session = getSession();
+        List<T> list = new ArrayList<T>();
+        list.add(entity);
 
-        session.beginTransaction();
-        session.saveOrUpdate(entity);
-        session.getTransaction().commit();
-        session.close();
-
+        return save(list);
     }
 
-    public void update(T entity) {
-
+    public boolean save(List<T> entityList) {
+        if (entityList == null || entityList.isEmpty()) {
+            return false;
+        }
         Session session = getSession();
+        Transaction transaction = null;
 
-        session.beginTransaction();
-        session.update(entity);
-        session.getTransaction().commit();
-        session.close();
+        try {
+            transaction = session.beginTransaction();
+            for (T entity : entityList) {
+                session.save(entity);
+            }
+            session.getTransaction().commit();
+            return true;
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
+
+        return false;
     }
 
-    public void delete(T entity) {
+
+    public boolean saveOrUpdate(T entity) {
+        List<T> list = new ArrayList<T>();
+        list.add(entity);
+        return saveOrUpdate(list);
+    }
+
+    public boolean saveOrUpdate(List<T> entityList) {
+
+        if (entityList == null || entityList.isEmpty()) {
+            return false;
+        }
+        Session session = getSession();
+        Transaction transaction = null;
+
+        try {
+            transaction = session.beginTransaction();
+            for (T entity : entityList) {
+                session.saveOrUpdate(entity);
+            }
+            session.getTransaction().commit();
+            return true;
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
+
+        return false;
+    }
+
+
+    public boolean update(T entity) {
+        List<T> list = new ArrayList<T>();
+        list.add(entity);
+        return update(list);
+    }
+
+    public boolean update(List<T> entityList) {
+        if (entityList == null || entityList.isEmpty()) {
+            return false;
+        }
+        Session session = getSession();
+        Transaction transaction = null;
+
+        try {
+            transaction = session.beginTransaction();
+            for (T entity : entityList) {
+                session.update(entity);
+            }
+            session.getTransaction().commit();
+            return true;
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
+
+        return false;
+    }
+
+    public boolean delete(T entity) {
 
         Session session = getSession();
+        Transaction transaction = null;
 
-        session.beginTransaction();
-        session.delete(entity);
-        session.getTransaction().commit();
-        session.close();
+        try {
+            transaction = session.beginTransaction();
+            session.delete(entity);
+            session.getTransaction().commit();
+            return true;
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
+
+        return false;
     }
 
     public T findById(Serializable id) {
         Session session = getSession();
 
         session.beginTransaction();
-        T userEntities = session.get(clazz, id);
+        T entity = session.get(clazz, id);
         session.getTransaction().commit();
         session.close();
-        return userEntities;
+        return entity;
     }
 
     public List<T> findByHql(String hql, Object... params) {

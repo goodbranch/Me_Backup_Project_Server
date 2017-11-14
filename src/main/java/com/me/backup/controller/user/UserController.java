@@ -2,12 +2,16 @@ package com.me.backup.controller.user;
 
 import com.me.backup.controller.BaseApiController;
 import com.me.backup.pojo.UserEntity;
+import com.me.backup.pojo.user.SmsModel;
 import com.me.backup.service.impl.user.UserServiceImpl;
 import com.me.backup.util.NumberUtil;
+import com.me.backup.util.ProjectUtil;
+import com.me.backup.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
@@ -26,7 +30,7 @@ public class UserController extends BaseApiController {
     public @ResponseBody
     Object login(HttpServletRequest request, HttpServletResponse response) {
 
-        final String name = request.getParameter("name");
+        final String name = request.getParameter("username");
         final String phoneNumber = request.getParameter("phoneNumber");
         final String password = request.getParameter("password");
 
@@ -77,38 +81,63 @@ public class UserController extends BaseApiController {
         final String birthday = request.getParameter("birthday");
         final String idCard = request.getParameter("idCard");
 
-
         UserEntity userEntity = findUser(name, phoneNumber);
 
         if (userEntity != null) {
-            return toResponse(0, "账号已存在，请直接登录或找回密码", null);
+            return toResponse(2, "账号已存在，请直接登录或找回密码", null);
         }
+
         userEntity = new UserEntity();
         userEntity.setUsername(name);
         userEntity.setPhoneNumber(phoneNumber);
         userEntity.setPassword(password);
-        userEntity.setEmail(email);
-        userEntity.setGender(NumberUtil.String2Int(gender));
-        userEntity.setToken(token);
-        userEntity.setBirthday(new Timestamp(NumberUtil.String2Long(birthday)));
-        userEntity.setIdcard(idCard);
-        userService.save(userEntity);
-
-        UserEntity result = findUser(name, phoneNumber, password);
-
-        if (result == null) {
-            return toResponse(0, "注册失败", null);
-
+        if (!StringUtil.isEmpty(email)) {
+            userEntity.setEmail(email);
         }
-        return toResponse(1, "注册成功", result);
+        if (!StringUtil.isEmpty(gender)) {
+            userEntity.setGender(NumberUtil.String2Int(gender));
+        }
+
+        userEntity.setToken(token);
+        if (!StringUtil.isEmpty(birthday)) {
+            userEntity.setBirthday(new Timestamp(NumberUtil.String2Long(birthday)));
+        }
+        if (!StringUtil.isEmpty(idCard)) {
+            userEntity.setIdcard(idCard);
+        }
+
+        boolean success = userService.save(userEntity);
+
+        if (!success) {
+            return toResponse(0, "注册失败", null);
+        }
+        return toResponse(1, "注册成功", userEntity);
+    }
+
+
+    @RequestMapping(value = "/sendSms", method = RequestMethod.GET)
+    public @ResponseBody
+    Object sendSms(@RequestParam("phoneNumber") String phoneNumber) {
+
+        if (!ProjectUtil.isMobilePhoneNum(phoneNumber)) {
+            return toResponse(0, "请输入正确的手机号码");
+        }
+
+        SmsModel smsModel = userService.sendSms(phoneNumber);
+
+        if (smsModel == null || smsModel.code != 200) {
+            return toResponse(0, "验证码发送失败，请重试");
+        }
+
+        return toResponse(1, "验证码已发送，请查收");
     }
 
 
     @RequestMapping(value = "/userinfo", method = RequestMethod.GET)
     public @ResponseBody
     Object userInfo(HttpServletRequest request, HttpServletResponse response) {
-        final String name = request.getParameter("name");
-        final String phoneNumber = request.getParameter("phonenumber");
+        final String name = request.getParameter("username");
+        final String phoneNumber = request.getParameter("phoneNumber");
         final String password = request.getParameter("password");
 
         UserEntity userEntity = findUser(name, phoneNumber, password);
