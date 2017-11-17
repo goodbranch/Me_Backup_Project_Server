@@ -1,8 +1,10 @@
 package com.me.backup.controller.contacts;
 
+import com.google.gson.reflect.TypeToken;
 import com.me.backup.controller.BaseApiController;
 import com.me.backup.pojo.ContactsEntity;
 import com.me.backup.service.impl.contacts.ContactsServiceImpl;
+import com.me.backup.util.JsonUtil;
 import com.me.backup.util.NumberUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -29,12 +31,18 @@ public class ContractsController extends BaseApiController {
     Object uploadContacts(HttpServletRequest request) {
         String userId = request.getParameter("userId");
         String contactsEntityListStr = request.getParameter("contactsList");
+        List<ContactsEntity> contactsEntityList = JsonUtil.fromJson(contactsEntityListStr, new TypeToken<List<ContactsEntity>>() {
+        }.getType());
+        if (contactsEntityList==null || contactsEntityList.isEmpty()) {
+
+        }
 
 //        if (contactsEntityList == null || contactsEntityList.isEmpty()) {
 //            return toResponse(1, "本次更新0条");
 //        }
 
         List<ContactsEntity> userContacts = contactsService.getContactsByUserId(NumberUtil.String2Int(userId));
+
 
 
         return toResponse(1, "同步完成", userContacts);
