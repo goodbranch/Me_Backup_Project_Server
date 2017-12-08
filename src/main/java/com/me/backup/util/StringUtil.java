@@ -10,4 +10,16 @@ public class StringUtil {
         return str.length() == 0;
     }
 
+
+    public static boolean equals(String str, String compareStr) {
+
+        if (str == null || compareStr == null) {
+            return false;
+        }
+
+        return str.equals(compareStr);
+
+    }
+
+
 }
